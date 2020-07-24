@@ -18,8 +18,6 @@ DEFAULT_ARGS = [
     "--quiet",
     # disable unused.
     "--nounixsocket",
-    # use a smaller default file size
-    "--smallfiles",
     # journaling on by default in 2.0 and makes it to slow
     # for tests, can causes failures in jenkins
     "--nojournal",
@@ -35,7 +33,8 @@ START_CHECK_ATTEMPTS = 200
 class MongoBox(object):
     def __init__(self, mongod_bin=None, port=None,
                  db_path=None, scripting=False,
-                 prealloc=False, auth=False, storage_engine=None):
+                 prealloc=True, auth=False, storage_engine=None,
+                 small_files=False):
 
         if db_path and os.path.exists(db_path) and os.path.isfile(db_path):
             raise AssertionError('DB path should be a directory, but it is a file.')
@@ -49,6 +48,7 @@ class MongoBox(object):
         self._db_path_is_temporary = not self.db_path
         self.auth = auth
         self.storage_engine = storage_engine
+        self.small_files = small_files
 
         self.process = None
 
@@ -79,6 +79,10 @@ class MongoBox(object):
 
         if not self.prealloc:
             args.append("--noprealloc")
+
+        # use a smaller default file size
+        if self.small_files:
+            args.append("--smallfiles")
 
         self.process_args = args
 
