@@ -92,8 +92,11 @@ class MongoBox(object):
         while True:
             if self.process.poll() is not None:  # the process has terminated
                 with open(self.log_path) as log_file:
-                    raise SystemExit('MondgoDB failed to start:\n{}\n{}'.format(
-                        ' '.join(self.process_args), log_file.read()))
+                    try:
+                        raise SystemExit('MondgoDB failed to start:\n{}\n{}'.format(
+                            ' '.join(self.process_args), log_file.read()))
+                    except FileNotFoundError:
+                        raise SystemExit('MondgoDB failed to start')
             attempts += 1
             if attempts > START_CHECK_ATTEMPTS:
                 break
@@ -114,7 +117,7 @@ class MongoBox(object):
         if self.process is None or self.process.poll() is not None:
             # the process does not exist anymore
             return
-        
+
         # Not sure if there should be more checks for
         # other platforms.
         if sys.platform == 'darwin':
